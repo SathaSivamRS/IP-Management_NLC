@@ -63,12 +63,12 @@ This project is built using **Node.js** for the backend and **React** for the fr
 
 2. To Install the new React project:
    ```bash
-   npx create-react-app new project name 
+   npx create-react-app new_project_name 
    ```
 
 3. Navigate to the created React app folder:
    ```bash
-   cd new project name
+   cd new_project_name
    ```
 
 4. Install the required frontend dependencies:
