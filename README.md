@@ -1,7 +1,3 @@
-Here’s the updated README file with instructions on how to install the React project:
-
----
-
 # IP Management System
 
 ## Overview
