@@ -4,7 +4,8 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`IP server running on port ${PORT}`));
 const FILE = "data.json";
 
 app.use(bodyParser.json());
