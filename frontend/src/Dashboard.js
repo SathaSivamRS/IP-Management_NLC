@@ -76,7 +76,7 @@ const App = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this IP?")) {
       try {
-        await axios.delete(`http://localhost:5000/ips/${id}`);
+        await axios.delete(`http://localhost:5001/ips/${id}`);
         fetchIPs();
         fetchUnusedIPs();
       } catch (error) {
