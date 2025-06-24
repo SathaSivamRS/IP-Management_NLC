@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Dashboard.css";
 
+const IP_URL = "https://ip-management-nlc-1.onrender.com";
+
+// Read user info from localStorage
+let storedUser = localStorage.getItem("user");
+let user = storedUser ? JSON.parse(storedUser) : null;
+
 const App = () => {
   const [ipAddress, setIpAddress] = useState("");
   const [deviceName, setDeviceName] = useState("");
@@ -11,30 +17,20 @@ const App = () => {
   const [editingId, setEditingId] = useState(null);
   const [unusedIPs, setUnusedIPs] = useState([]);
 
-  // ✅ Safely read email from localStorage
-  let user = null;
-  try {
-    const stored = localStorage.getItem("user");
-    user = JSON.parse(stored); // expected to be like { "email": "you@example.com" }
-    if (typeof user === "string") user = { email: user }; // fallback
-  } catch {
-    alert("Invalid user session. Please log in again.");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-  }
-
   useEffect(() => {
-    if (user?.email) {
-      fetchIPs(user.email);
-      fetchUnusedIPs();
+    if (!user?.username) {
+      alert("Invalid session. Please log in again.");
+      window.location.href = "/login";
+      return;
     }
+
+    fetchIPs(user.username);
+    fetchUnusedIPs();
   }, []);
 
-  const fetchIPs = async (email) => {
+  const fetchIPs = async (username) => {
     try {
-      const response = await axios.get(
-        `http://localhost:5001/ips?username=${email}` // ✅ pass email as username
-      );
+      const response = await axios.get(`${IP_URL}/ips?username=${username}`);
       setData(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -43,7 +39,7 @@ const App = () => {
 
   const fetchUnusedIPs = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/unused-ips");
+      const response = await axios.get(`${IP_URL}/unused-ips`);
       setUnusedIPs(response.data);
     } catch (error) {
       console.error("Error fetching unused IPs:", error);
@@ -62,9 +58,7 @@ const App = () => {
     }
 
     if (!validateIpAddress(ipAddress)) {
-      alert(
-        "Invalid IP Address! Please enter a valid IP within the range 172.16.92.x to 172.16.95.x."
-      );
+      alert("Invalid IP Address! Use range 172.16.92.x to 172.16.95.x.");
       return;
     }
 
@@ -72,20 +66,20 @@ const App = () => {
       ipAddress,
       deviceName,
       deviceType,
-      username: user.email, // ✅ store email as username
+      username: user.username,
     };
 
     try {
       if (editingId) {
-        await axios.put(`http://localhost:5001/ips/${editingId}`, newEntry);
+        await axios.put(`${IP_URL}/ips/${editingId}`, newEntry);
       } else {
-        await axios.post("http://localhost:5001/ips", newEntry);
+        await axios.post(`${IP_URL}/ips`, newEntry);
       }
-      fetchIPs(user.email);
+      fetchIPs(user.username);
       fetchUnusedIPs();
       resetForm();
     } catch (error) {
-      alert("Error: " + error.response?.data?.message || "Validation Failed!");
+      alert("Error: " + (error.response?.data?.message || "Validation failed"));
     }
   };
 
@@ -99,8 +93,8 @@ const App = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this IP?")) {
       try {
-        await axios.delete(`http://localhost:5001/ips/${id}`);
-        fetchIPs(user.email);
+        await axios.delete(`${IP_URL}/ips/${id}`);
+        fetchIPs(user.username);
         fetchUnusedIPs();
       } catch (error) {
         alert("Error deleting IP.");
@@ -128,16 +122,22 @@ const App = () => {
 
   return (
     <div className="app">
+      <header className="navbar">
+        <div className="greeting">
+          Hello, {user?.username.replace(/_/g, " ")} 👋
+        </div>
+        <button
+          className="logout-btn"
+          onClick={() => {
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+          }}
+        >
+          Logout
+        </button>
+      </header>
+
       <h1 className="title">IP Management System</h1>
-      <button
-        className="logout-btn"
-        onClick={() => {
-          localStorage.removeItem("user");
-          window.location.href = "/login";
-        }}
-      >
-        Logout
-      </button>
 
       <div className="form">
         <input
@@ -213,3 +213,4 @@ const App = () => {
 };
 
 export default App;
+// 24/06/25 09:16 PM

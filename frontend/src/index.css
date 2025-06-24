@@ -185,21 +185,31 @@ body::after {
 }
 
 .logout-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #ff4d4f;
-  color: white;
-  padding: 8px 14px;
+  background-color: #ff6b6b;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
   font-weight: bold;
-  transition: background 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 .logout-btn:hover {
   background-color: #d9363e;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #ffffffaa;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.greeting {
+  color: #333;
 }
 
 

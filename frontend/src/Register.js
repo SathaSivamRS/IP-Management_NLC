@@ -80,11 +80,15 @@ const Register = () => {
       return;
     }
 
-    const res = await registerUser(form);
-    if (res.message === "User registered successfully") {
-      navigate("/login");
-    } else {
-      setMessage(res.message);
+    try {
+      const res = await registerUser(form);
+      if (res.message === "User registered successfully") {
+        navigate("/login");
+      } else {
+        setMessage(res.message);
+      }
+    } catch (err) {
+      setMessage("❌ Something went wrong. Try again.");
     }
   };
 
