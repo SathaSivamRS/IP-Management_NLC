@@ -11,14 +11,30 @@ const App = () => {
   const [editingId, setEditingId] = useState(null);
   const [unusedIPs, setUnusedIPs] = useState([]);
 
+  // ✅ Safely read email from localStorage
+  let user = null;
+  try {
+    const stored = localStorage.getItem("user");
+    user = JSON.parse(stored); // expected to be like { "email": "you@example.com" }
+    if (typeof user === "string") user = { email: user }; // fallback
+  } catch {
+    alert("Invalid user session. Please log in again.");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  }
+
   useEffect(() => {
-    fetchIPs();
-    fetchUnusedIPs();
+    if (user?.email) {
+      fetchIPs(user.email);
+      fetchUnusedIPs();
+    }
   }, []);
 
-  const fetchIPs = async () => {
+  const fetchIPs = async (email) => {
     try {
-      const response = await axios.get("http://localhost:5001/ips");
+      const response = await axios.get(
+        `http://localhost:5001/ips?username=${email}` // ✅ pass email as username
+      );
       setData(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -46,11 +62,18 @@ const App = () => {
     }
 
     if (!validateIpAddress(ipAddress)) {
-      alert("Invalid IP Address! Please enter a valid IP witclshin the range 172.16.92.x to 172.16.95.x.");
+      alert(
+        "Invalid IP Address! Please enter a valid IP within the range 172.16.92.x to 172.16.95.x."
+      );
       return;
     }
 
-    const newEntry = { ipAddress, deviceName, deviceType };
+    const newEntry = {
+      ipAddress,
+      deviceName,
+      deviceType,
+      username: user.email, // ✅ store email as username
+    };
 
     try {
       if (editingId) {
@@ -58,7 +81,7 @@ const App = () => {
       } else {
         await axios.post("http://localhost:5001/ips", newEntry);
       }
-      fetchIPs();
+      fetchIPs(user.email);
       fetchUnusedIPs();
       resetForm();
     } catch (error) {
@@ -77,7 +100,7 @@ const App = () => {
     if (window.confirm("Are you sure you want to delete this IP?")) {
       try {
         await axios.delete(`http://localhost:5001/ips/${id}`);
-        fetchIPs();
+        fetchIPs(user.email);
         fetchUnusedIPs();
       } catch (error) {
         alert("Error deleting IP.");
@@ -97,15 +120,24 @@ const App = () => {
       ? data
       : filter === "used"
       ? data.filter((d) => d.deviceName)
-      : unusedIPs.map((ip) => ({ ipAddress: ip, deviceName: "", deviceType: "" }));
+      : unusedIPs.map((ip) => ({
+          ipAddress: ip,
+          deviceName: "",
+          deviceType: "",
+        }));
 
   return (
     <div className="app">
       <h1 className="title">IP Management System</h1>
-      <button className="logout-btn" onClick={() => {
-  localStorage.removeItem("user");
-  window.location.href = "/login"; // Redirect to login page
-}}>Logout</button>
+      <button
+        className="logout-btn"
+        onClick={() => {
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }}
+      >
+        Logout
+      </button>
 
       <div className="form">
         <input
@@ -138,11 +170,13 @@ const App = () => {
         </button>
         <button onClick={resetForm}>Reset</button>
       </div>
+
       <div className="filter">
         <button onClick={() => setFilter("all")}>All</button>
         <button onClick={() => setFilter("used")}>Used</button>
         <button onClick={() => setFilter("unused")}>Unused</button>
       </div>
+
       <table>
         <thead>
           <tr>
@@ -162,7 +196,9 @@ const App = () => {
                 {entry.deviceName ? (
                   <>
                     <button onClick={() => handleEdit(entry)}>Edit</button>
-                    <button onClick={() => handleDelete(entry.id)}>Delete</button>
+                    <button onClick={() => handleDelete(entry.id)}>
+                      Delete
+                    </button>
                   </>
                 ) : (
                   "-"

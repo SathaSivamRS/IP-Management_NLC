@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "id": 1750774126544,
+        "ipAddress": "172.16.92.1",
+        "deviceName": "HP Omen",
+        "deviceType": "Laptop",
+        "username": "Sathasivam_R_S"
+    }
+]

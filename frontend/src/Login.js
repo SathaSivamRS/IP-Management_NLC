@@ -13,7 +13,8 @@ export default function Login() {
   const handleLogin = async () => {
     const res = await loginUser(form);
     if (res.message === 'Login successful') {
-      localStorage.setItem('user', res.username);
+      localStorage.setItem('user', JSON.stringify({ email: res.email, username: res.username }));
+
       navigate('/dashboard');
     } else {
       setMessage(res.message);
