@@ -4,7 +4,6 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Auth server running on port ${PORT}`));
 
 app.use(cors());
 app.use(express.json());
@@ -20,10 +19,7 @@ const isTempEmail = email => {
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
-  if (isTempEmail(email)) {
-    return res.status(400).json({ message: 'Temporary email not allowed' });
-  }
-
+  if (isTempEmail(email)) return res.status(400).json({ message: 'Temporary email not allowed' });
   if (password.length < 6 || !/[A-Z]/.test(password) || !/\d/.test(password)) {
     return res.status(400).json({ message: 'Password must be 6+ chars, include uppercase & number' });
   }
@@ -51,4 +47,4 @@ app.post('/login', async (req, res) => {
   res.json({ message: 'Login successful', username: user.username, email: user.email });
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Auth server running on port ${PORT}`));

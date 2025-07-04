@@ -3,93 +3,73 @@ import { registerUser } from './api';
 import { useNavigate } from 'react-router-dom';
 import './index.css';
 
-const Register = () => {
+export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    fullName: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    fullName: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
-
-  const [message, setMessage] = useState("");
-  const [passwordStrength, setPasswordStrength] = useState("");
+  const [message, setMessage] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
 
   const tempDomains = [
-    "mailinator.com", "guerrillamail.com", "tempmail.com",
-    "10minutemail.com", "emailondeck.com", "dispostable.com", "cybtric.com"
+    'mailinator.com',
+    'guerrillamail.com',
+    'tempmail.com',
+    '10minutemail.com',
+    'emailondeck.com',
+    'dispostable.com',
+    'cybtric.com',
   ];
-
   const usernameRegex = /^[a-zA-Z0-9_]+$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'username') {
+      if (/^[a-zA-Z0-9_]*$/.test(value)) setForm({ ...form, [name]: value });
+    } else setForm({ ...form, [name]: value });
 
-    if (name === "username") {
-      if (/^[a-zA-Z0-9_]*$/.test(value)) {
-        setForm({ ...form, [name]: value });
-      }
-    } else {
-      setForm({ ...form, [name]: value });
-    }
-
-    if (name === "password") checkPasswordStrength(value);
+    if (name === 'password') checkPasswordStrength(value);
   };
 
-  const checkPasswordStrength = (password) => {
-    if (password.length < 6) {
-      setPasswordStrength("Weak ❌");
-    } else if (password.length < 10) {
-      setPasswordStrength("Medium ⚠️");
-    } else {
-      setPasswordStrength("Strong ✅");
-    }
+  const checkPasswordStrength = (p) => {
+    if (p.length < 6) setPasswordStrength('Weak ❌');
+    else if (p.length < 10) setPasswordStrength('Medium ⚠️');
+    else setPasswordStrength('Strong ✅');
   };
 
   const handleRegister = async () => {
-    const email = form.email.trim();
-    const username = form.username.trim();
-    const password = form.password.trim();
-    const confirmPassword = form.confirmPassword.trim();
-    const domain = email.split("@").pop();
+    const { fullName, username, email, password, confirmPassword } = form;
+    const domain = email.split('@').pop();
 
-    if (!form.fullName || !username || !email || !password || !confirmPassword) {
-      setMessage("❌ Please fill in all fields.");
+    if (!fullName || !username || !email || !password || !confirmPassword) {
+      setMessage('❌ Please fill in all fields.');
       return;
     }
-
     if (!usernameRegex.test(username)) {
-      setMessage("❌ Username can only contain letters, numbers, and underscores.");
+      setMessage('❌ Username can only contain letters, numbers, and underscores.');
       return;
     }
-
     if (tempDomains.includes(domain)) {
-      setMessage("❌ Temporary email domains are not allowed.");
+      setMessage('❌ Temporary email domains are not allowed.');
       return;
     }
-
     if (!passwordRegex.test(password)) {
-      setMessage("❌ Password must have 8+ chars, uppercase, lowercase, number, and symbol.");
+      setMessage('❌ Password must have 8+ chars, uppercase, lowercase, number, and symbol.');
       return;
     }
-
     if (password !== confirmPassword) {
-      setMessage("❌ Password and Confirm Password must match.");
+      setMessage('❌ Password and Confirm Password must match.');
       return;
     }
 
-    try {
-      const res = await registerUser(form);
-      if (res.message === "User registered successfully") {
-        navigate("/login");
-      } else {
-        setMessage(res.message);
-      }
-    } catch (err) {
-      setMessage("❌ Something went wrong. Try again.");
-    }
+    const res = await registerUser({ username, email, password });
+    if (res.message === 'User registered successfully') navigate('/login');
+    else setMessage(res.message);
   };
 
   return (
@@ -145,7 +125,10 @@ const Register = () => {
           style={styles.input}
         />
 
-        <button onClick={handleRegister} style={styles.button}>Register</button>
+        <button onClick={handleRegister} style={styles.button}>
+          Register
+        </button>
+
         {message && <p style={styles.message}>{message}</p>}
 
         <a href="/login" style={styles.link}>
@@ -154,7 +137,7 @@ const Register = () => {
       </div>
     </div>
   );
-};
+}
 
 const styles = {
   wrapper: {
@@ -162,7 +145,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background: 'transparent'
+    background: 'linear-gradient(to right, #fbc2eb, #a6c1ee)'
   },
   card: {
     background: 'rgba(255, 255, 255, 0.85)',
@@ -211,5 +194,3 @@ const styles = {
     color: '#444'
   }
 };
-
-export default Register;

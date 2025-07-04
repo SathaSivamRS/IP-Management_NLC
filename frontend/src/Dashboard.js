@@ -1,39 +1,39 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "./Dashboard.css";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './Dashboard.css';
 
-const IP_URL = "https://ip-management-nlc-1.onrender.com";
+const IP_URL = 'https://ip-management-nlc-1.onrender.com';
 
-// Read user info from localStorage
-let storedUser = localStorage.getItem("user");
-let user = storedUser ? JSON.parse(storedUser) : null;
-
-const App = () => {
-  const [ipAddress, setIpAddress] = useState("");
-  const [deviceName, setDeviceName] = useState("");
-  const [deviceType, setDeviceType] = useState("");
+export default function Dashboard() {
+  const [ipAddress, setIpAddress] = useState('');
+  const [deviceName, setDeviceName] = useState('');
+  const [deviceType, setDeviceType] = useState('');
   const [data, setData] = useState([]);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState('all');
   const [editingId, setEditingId] = useState(null);
   const [unusedIPs, setUnusedIPs] = useState([]);
 
+  const storedUser = localStorage.getItem('user');
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
   useEffect(() => {
-    if (!user?.username) {
-      alert("Invalid session. Please log in again.");
-      window.location.href = "/login";
+    if (!user?.username || !user?.email) {
+      alert('Invalid session. Please log in again.');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
       return;
     }
 
-    fetchIPs(user.username);
+    fetchIPs();
     fetchUnusedIPs();
   }, []);
 
-  const fetchIPs = async (username) => {
+  const fetchIPs = async () => {
     try {
-      const response = await axios.get(`${IP_URL}/ips?username=${username}`);
+      const response = await axios.get(`${IP_URL}/ips?username=${user.username}`);
       setData(response.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching IPs:', error);
     }
   };
 
@@ -42,7 +42,7 @@ const App = () => {
       const response = await axios.get(`${IP_URL}/unused-ips`);
       setUnusedIPs(response.data);
     } catch (error) {
-      console.error("Error fetching unused IPs:", error);
+      console.error('Error fetching unused IPs:', error);
     }
   };
 
@@ -53,12 +53,12 @@ const App = () => {
 
   const handleAddOrEdit = async () => {
     if (!ipAddress || !deviceName || !deviceType) {
-      alert("All fields are required!");
+      alert('All fields are required!');
       return;
     }
 
     if (!validateIpAddress(ipAddress)) {
-      alert("Invalid IP Address! Use range 172.16.92.x to 172.16.95.x.");
+      alert('Invalid IP Address! Use range 172.16.92.x to 172.16.95.x.');
       return;
     }
 
@@ -75,11 +75,11 @@ const App = () => {
       } else {
         await axios.post(`${IP_URL}/ips`, newEntry);
       }
-      fetchIPs(user.username);
+      fetchIPs();
       fetchUnusedIPs();
       resetForm();
     } catch (error) {
-      alert("Error: " + (error.response?.data?.message || "Validation failed"));
+      alert('Error: ' + (error.response?.data?.message || 'Validation failed'));
     }
   };
 
@@ -91,46 +91,44 @@ const App = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this IP?")) {
+    if (window.confirm('Are you sure you want to delete this IP?')) {
       try {
         await axios.delete(`${IP_URL}/ips/${id}`);
-        fetchIPs(user.username);
+        fetchIPs();
         fetchUnusedIPs();
       } catch (error) {
-        alert("Error deleting IP.");
+        alert('Error deleting IP.');
       }
     }
   };
 
   const resetForm = () => {
-    setIpAddress("");
-    setDeviceName("");
-    setDeviceType("");
+    setIpAddress('');
+    setDeviceName('');
+    setDeviceType('');
     setEditingId(null);
   };
 
   const filteredData =
-    filter === "all"
+    filter === 'all'
       ? data
-      : filter === "used"
+      : filter === 'used'
       ? data.filter((d) => d.deviceName)
       : unusedIPs.map((ip) => ({
           ipAddress: ip,
-          deviceName: "",
-          deviceType: "",
+          deviceName: '',
+          deviceType: '',
         }));
 
   return (
     <div className="app">
       <header className="navbar">
-        <div className="greeting">
-          Hello, {user?.username.replace(/_/g, " ")} 👋
-        </div>
+        <div className="greeting">Hello, {user?.username.replace(/_/g, ' ')} 👋</div>
         <button
           className="logout-btn"
           onClick={() => {
-            localStorage.removeItem("user");
-            window.location.href = "/login";
+            localStorage.removeItem('user');
+            window.location.href = '/login';
           }}
         >
           Logout
@@ -165,16 +163,14 @@ const App = () => {
           <option value="Switches">Switches</option>
           <option value="PlayStation">PlayStation</option>
         </select>
-        <button onClick={handleAddOrEdit}>
-          {editingId ? "Update" : "Add"}
-        </button>
+        <button onClick={handleAddOrEdit}>{editingId ? 'Update' : 'Add'}</button>
         <button onClick={resetForm}>Reset</button>
       </div>
 
       <div className="filter">
-        <button onClick={() => setFilter("all")}>All</button>
-        <button onClick={() => setFilter("used")}>Used</button>
-        <button onClick={() => setFilter("unused")}>Unused</button>
+        <button onClick={() => setFilter('all')}>All</button>
+        <button onClick={() => setFilter('used')}>Used</button>
+        <button onClick={() => setFilter('unused')}>Unused</button>
       </div>
 
       <table>
@@ -190,18 +186,16 @@ const App = () => {
           {filteredData.map((entry, index) => (
             <tr key={index}>
               <td>{entry.ipAddress}</td>
-              <td>{entry.deviceName}</td>
-              <td>{entry.deviceType}</td>
+              <td>{entry.deviceName || '-'}</td>
+              <td>{entry.deviceType || '-'}</td>
               <td>
                 {entry.deviceName ? (
                   <>
                     <button onClick={() => handleEdit(entry)}>Edit</button>
-                    <button onClick={() => handleDelete(entry.id)}>
-                      Delete
-                    </button>
+                    <button onClick={() => handleDelete(entry.id)}>Delete</button>
                   </>
                 ) : (
-                  "-"
+                  '-'
                 )}
               </td>
             </tr>
@@ -210,7 +204,4 @@ const App = () => {
       </table>
     </div>
   );
-};
-
-export default App;
-// 24/06/25 09:16 PM
+}

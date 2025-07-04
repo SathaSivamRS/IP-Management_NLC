@@ -8,19 +8,16 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleLogin = async () => {
     const res = await loginUser(form);
+    console.log('Login response:', res);
 
-    if (res.message === 'Login successful') {
-      // ✅ Store full user info (email & username) in localStorage
-      localStorage.setItem(
-        'user',
-        JSON.stringify({ email: res.email, username: res.username })
-      );
+    if (res.message === 'Login successful' && res.email && res.username) {
+      const userObj = { email: res.email, username: res.username };
+      localStorage.setItem('user', JSON.stringify(userObj));
       navigate('/dashboard');
     } else {
       setMessage(res.message || 'Login failed');
@@ -31,26 +28,25 @@ export default function Login() {
     <div style={styles.wrapper}>
       <div style={styles.card}>
         <h2 style={styles.title}>Login</h2>
-
         <input
           name="email"
           placeholder="Email"
+          value={form.email}
           onChange={handleChange}
           style={styles.input}
-          value={form.email}
         />
         <input
-          name="password"
           type="password"
+          name="password"
           placeholder="Password"
+          value={form.password}
           onChange={handleChange}
           style={styles.input}
-          value={form.password}
         />
-        <button onClick={handleLogin} style={styles.button}>Login</button>
-
+        <button onClick={handleLogin} style={styles.button}>
+          Login
+        </button>
         {message && <p style={styles.message}>{message}</p>}
-
         <a href="/register" style={styles.link}>
           Don't have an account? <b>Register</b>
         </a>
