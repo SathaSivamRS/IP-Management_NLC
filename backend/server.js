@@ -48,7 +48,7 @@ app.post('/login', async (req, res) => {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(401).json({ message: 'Invalid email or password' });
 
-  res.json({ message: 'Login successful', username: user.username });
+  res.json({ message: 'Login successful', username: user.username, email: user.email });
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

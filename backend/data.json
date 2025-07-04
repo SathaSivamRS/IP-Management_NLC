@@ -5,11 +5,5 @@
         "deviceName": "HP Omen",
         "deviceType": "Laptop",
         "username": "Sathasivam_R_S"
-    },
-    {
-        "id": 1750776388702,
-        "ipAddress": "172.16.92.2",
-        "deviceName": "JP",
-        "deviceType": "Laptop"
     }
 ]
