@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Dashboard.css';
 
-const IP_URL = 'https://ip-management-nlc-1.onrender.com';
+const AUTH_API = process.env.REACT_APP_AUTH_API;
+const IP_API = process.env.REACT_APP_IP_API;
 
 export default function Dashboard() {
   const [ipAddress, setIpAddress] = useState('');
@@ -30,7 +31,7 @@ export default function Dashboard() {
 
   const fetchIPs = async () => {
     try {
-      const response = await axios.get(`${IP_URL}/ips?username=${user.username}&email=${user.email}`);
+      const response = await axios.get(`${IP_API}/ips?username=${user.username}&email=${user.email}`);
       setData(response.data);
     } catch (error) {
       console.error('Error fetching IPs:', error);
@@ -40,7 +41,7 @@ export default function Dashboard() {
   const fetchUnusedIPs = async () => {
   try {
     const response = await axios.get(
-      `${IP_URL}/unused-ips?username=${user.username}&email=${user.email}`
+      `${IP_API}/unused-ips?username=${user.username}&email=${user.email}`
     );
     setUnusedIPs(response.data);
   } catch (error) {
@@ -74,9 +75,9 @@ export default function Dashboard() {
 
     try {
       if (editingId) {
-        await axios.put(`${IP_URL}/ips/${editingId}`, newEntry);
+        await axios.put(`${IP_API}/ips/${editingId}`, newEntry);
       } else {
-        await axios.post(`${IP_URL}/ips`, newEntry);
+        await axios.post(`${IP_API}/ips`, newEntry);
       }
       fetchIPs();
       fetchUnusedIPs();
@@ -96,7 +97,7 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this IP?')) {
       try {
-        await axios.delete(`${IP_URL}/ips/${id}`);
+        await axios.delete(`${IP_API}/ips/${id}`);
         fetchIPs();
         fetchUnusedIPs();
       } catch (error) {

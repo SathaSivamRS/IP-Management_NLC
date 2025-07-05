@@ -1,8 +1,11 @@
-// Auth server (login/register)
-const AUTH_API = 'https://ip-management-nlc.onrender.com';
+// // Auth server (login/register)
+// const AUTH_API = 'https://ip-management-nlc.onrender.com';
 
-// IP management server (ips/unused-ips)
-const IP_API = 'https://ip-management-nlc-1.onrender.com';
+// // IP management server (ips/unused-ips)
+// const IP_API = 'https://ip-management-nlc-1.onrender.com';
+
+const AUTH_API = process.env.REACT_APP_AUTH_API;
+const IP_API = process.env.REACT_APP_IP_API;
 
 export const registerUser = async (user) => {
   const res = await fetch(`${AUTH_API}/register`, {
