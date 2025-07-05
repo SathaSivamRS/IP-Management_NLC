@@ -20,6 +20,7 @@ app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
   if (isTempEmail(email)) return res.status(400).json({ message: 'Temporary email not allowed' });
+
   if (password.length < 6 || !/[A-Z]/.test(password) || !/\d/.test(password)) {
     return res.status(400).json({ message: 'Password must be 6+ chars, include uppercase & number' });
   }
@@ -45,6 +46,13 @@ app.post('/login', async (req, res) => {
   if (!match) return res.status(401).json({ message: 'Invalid email or password' });
 
   res.json({ message: 'Login successful', username: user.username, email: user.email });
+});
+
+// ✅ Add this route to view all registered users (for debug/admin)
+app.get('/users', (req, res) => {
+  const users = JSON.parse(fs.readFileSync(filePath));
+  const safeUsers = users.map(({ username, email }) => ({ username, email }));
+  res.json(safeUsers);
 });
 
 app.listen(PORT, () => console.log(`Auth server running on port ${PORT}`));
