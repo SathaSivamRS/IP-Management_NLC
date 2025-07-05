@@ -83,7 +83,7 @@ Runs on: **http://localhost:5001**
 ## Frontend Setup
 
 ```bash
-cd ip-management
+cd frontend
 npm install
 npm start
 ```
@@ -134,6 +134,10 @@ Runs on: **http://localhost:3000**
 - All IP data is stored in `data.json`
 - All user credentials are stored in `users.json`
 - Data is persisted between server restarts
+
+## ✅ Final Deployment
+- Version: Stable
+- Frontend hosted on: [Vercel](https://ip-management-nlc.vercel.app)
 
 ---
 
