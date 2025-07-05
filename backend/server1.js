@@ -58,16 +58,30 @@ app.get("/unused-ips", (req, res) => {
 
 app.post("/ips", (req, res) => {
   const { ipAddress, deviceName, deviceType, username, email } = req.body;
-  if (!validateIpAddress(ipAddress)) return res.status(400).json({ message: "Invalid IP Address!" });
+
+  if (!validateIpAddress(ipAddress)) {
+    return res.status(400).json({ message: "Invalid IP Address!" });
+  }
 
   const data = JSON.parse(fs.readFileSync(FILE));
-  const exists = data.some((entry) => entry.ipAddress === ipAddress);
-  if (exists) return res.status(400).json({ message: "IP Address already exists!" });
+
+  // Only block if this user has already used this IP
+  const existsForUser = data.some(
+    (entry) =>
+      entry.ipAddress === ipAddress &&
+      entry.username === username &&
+      entry.email === email
+  );
+
+  if (existsForUser) {
+    return res.status(400).json({ message: "You have already used this IP!" });
+  }
 
   data.push({ id: Date.now(), ipAddress, deviceName, deviceType, username, email });
   fs.writeFileSync(FILE, JSON.stringify(data));
   res.status(201).send("IP added successfully.");
 });
+
 
 app.put("/ips/:id", (req, res) => {
   const { id } = req.params;
