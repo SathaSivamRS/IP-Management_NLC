@@ -28,13 +28,13 @@ const generateAllIPs = () => {
 };
 
 app.get("/ips", (req, res) => {
-  const { username } = req.query;
+  const { username, email } = req.query;
   const data = JSON.parse(fs.readFileSync(FILE));
-  if (username) {
-    const filteredData = data.filter((entry) => entry.username === username);
-    return res.json(filteredData);
+  if (username && email) {
+    const filtered = data.filter((entry) => entry.username === username && entry.email === email);
+    return res.json(filtered);
   }
-  res.json(data);
+  res.json([]);
 });
 
 app.get("/unused-ips", (req, res) => {
@@ -46,14 +46,14 @@ app.get("/unused-ips", (req, res) => {
 });
 
 app.post("/ips", (req, res) => {
-  const { ipAddress, deviceName, deviceType, username } = req.body;
+  const { ipAddress, deviceName, deviceType, username, email } = req.body;
   if (!validateIpAddress(ipAddress)) return res.status(400).json({ message: "Invalid IP Address!" });
 
   const data = JSON.parse(fs.readFileSync(FILE));
   const exists = data.some((entry) => entry.ipAddress === ipAddress);
   if (exists) return res.status(400).json({ message: "IP Address already exists!" });
 
-  data.push({ id: Date.now(), ipAddress, deviceName, deviceType, username });
+  data.push({ id: Date.now(), ipAddress, deviceName, deviceType, username, email });
   fs.writeFileSync(FILE, JSON.stringify(data));
   res.status(201).send("IP added successfully.");
 });
@@ -64,6 +64,7 @@ app.put("/ips/:id", (req, res) => {
   const data = JSON.parse(fs.readFileSync(FILE));
   const index = data.findIndex((entry) => entry.id == id);
   if (index === -1) return res.status(404).send("IP not found!");
+
   data[index] = { ...data[index], ipAddress, deviceName, deviceType };
   fs.writeFileSync(FILE, JSON.stringify(data));
   res.send("IP updated successfully.");
