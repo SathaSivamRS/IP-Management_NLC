@@ -38,12 +38,23 @@ app.get("/ips", (req, res) => {
 });
 
 app.get("/unused-ips", (req, res) => {
+  const { username, email } = req.query;
+
+  if (!username || !email) {
+    return res.status(400).json({ message: "Missing username or email" });
+  }
+
   const allIPs = generateAllIPs();
   const data = JSON.parse(fs.readFileSync(FILE));
-  const usedIPs = data.map((entry) => entry.ipAddress);
-  const unusedIPs = allIPs.filter((ip) => !usedIPs.includes(ip));
+
+  const userUsedIPs = data
+    .filter((entry) => entry.username === username && entry.email === email)
+    .map((entry) => entry.ipAddress);
+
+  const unusedIPs = allIPs.filter((ip) => !userUsedIPs.includes(ip));
   res.json(unusedIPs);
 });
+
 
 app.post("/ips", (req, res) => {
   const { ipAddress, deviceName, deviceType, username, email } = req.body;

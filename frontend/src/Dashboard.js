@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [deviceName, setDeviceName] = useState('');
   const [deviceType, setDeviceType] = useState('');
   const [data, setData] = useState([]);
+  const [filter, setFilter] = useState('all');
   const [editingId, setEditingId] = useState(null);
   const [unusedIPs, setUnusedIPs] = useState([]);
 
@@ -22,29 +23,30 @@ export default function Dashboard() {
       window.location.href = '/login';
       return;
     }
+
     fetchIPs();
     fetchUnusedIPs();
   }, []);
 
   const fetchIPs = async () => {
     try {
-      const res = await axios.get(`${IP_URL}/ips`, {
-        params: { username: user.username, email: user.email }
-      });
-      setData(res.data);
-    } catch (err) {
-      console.error('Error fetching IPs:', err);
+      const response = await axios.get(`${IP_URL}/ips?username=${user.username}&email=${user.email}`);
+      setData(response.data);
+    } catch (error) {
+      console.error('Error fetching IPs:', error);
     }
   };
 
   const fetchUnusedIPs = async () => {
-    try {
-      const res = await axios.get(`${IP_URL}/unused-ips`);
-      setUnusedIPs(res.data);
-    } catch (err) {
-      console.error('Error fetching unused IPs:', err);
-    }
-  };
+  try {
+    const response = await axios.get(
+      `${IP_URL}/unused-ips?username=${user.username}&email=${user.email}`
+    );
+    setUnusedIPs(response.data);
+  } catch (error) {
+    console.error('Error fetching unused IPs:', error);
+  }
+};
 
   const validateIpAddress = (ip) => {
     const regex = /^172\.16\.(92|93|94|95)\.(1[0-9]|2[0-4][0-4]|[1-9][0-9]?)$/;
@@ -58,11 +60,11 @@ export default function Dashboard() {
     }
 
     if (!validateIpAddress(ipAddress)) {
-      alert('Invalid IP Address! Use 172.16.92-95.x');
+      alert('Invalid IP Address! Use range 172.16.92.x to 172.16.95.x.');
       return;
     }
 
-    const payload = {
+    const newEntry = {
       ipAddress,
       deviceName,
       deviceType,
@@ -72,15 +74,15 @@ export default function Dashboard() {
 
     try {
       if (editingId) {
-        await axios.put(`${IP_URL}/ips/${editingId}`, payload);
+        await axios.put(`${IP_URL}/ips/${editingId}`, newEntry);
       } else {
-        await axios.post(`${IP_URL}/ips`, payload);
+        await axios.post(`${IP_URL}/ips`, newEntry);
       }
       fetchIPs();
       fetchUnusedIPs();
       resetForm();
-    } catch (err) {
-      alert('Error: ' + (err.response?.data?.message || 'Validation failed'));
+    } catch (error) {
+      alert('Error: ' + (error.response?.data?.message || 'Validation failed'));
     }
   };
 
@@ -97,7 +99,7 @@ export default function Dashboard() {
         await axios.delete(`${IP_URL}/ips/${id}`);
         fetchIPs();
         fetchUnusedIPs();
-      } catch (err) {
+      } catch (error) {
         alert('Error deleting IP.');
       }
     }
@@ -110,10 +112,21 @@ export default function Dashboard() {
     setEditingId(null);
   };
 
+  const filteredData =
+    filter === 'all'
+      ? data
+      : filter === 'used'
+      ? data.filter((d) => d.deviceName)
+      : unusedIPs.map((ip) => ({
+          ipAddress: ip,
+          deviceName: '',
+          deviceType: '',
+        }));
+
   return (
     <div className="app">
       <header className="navbar">
-        <div className="greeting">Hi, {user?.username.replace(/_/g, ' ')} 👋</div>
+        <div className="greeting">Hello, {user?.username.replace(/_/g, ' ')} 👋</div>
         <button
           className="logout-btn"
           onClick={() => {
@@ -130,7 +143,7 @@ export default function Dashboard() {
       <div className="form">
         <input
           type="text"
-          placeholder="IP Address"
+          placeholder="IP Address (e.g., 172.16.92.1)"
           value={ipAddress}
           onChange={(e) => setIpAddress(e.target.value)}
         />
@@ -144,35 +157,49 @@ export default function Dashboard() {
           value={deviceType}
           onChange={(e) => setDeviceType(e.target.value)}
         >
-          <option value="">Select Type</option>
+          <option value="">Select Device Type</option>
           <option value="Camera">Camera</option>
           <option value="Laptop">Laptop</option>
           <option value="PC">PC</option>
           <option value="Server">Server</option>
           <option value="Router/Modem">Router/Modem</option>
+          <option value="Switches">Switches</option>
+          <option value="PlayStation">PlayStation</option>
         </select>
         <button onClick={handleAddOrEdit}>{editingId ? 'Update' : 'Add'}</button>
         <button onClick={resetForm}>Reset</button>
+      </div>
+
+      <div className="filter">
+        <button onClick={() => setFilter('all')}>All</button>
+        <button onClick={() => setFilter('used')}>Used</button>
+        <button onClick={() => setFilter('unused')}>Unused</button>
       </div>
 
       <table>
         <thead>
           <tr>
             <th>IP Address</th>
-            <th>Device</th>
-            <th>Type</th>
+            <th>Device Name</th>
+            <th>Device Type</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {data.map((entry) => (
-            <tr key={entry.id}>
+          {filteredData.map((entry, index) => (
+            <tr key={index}>
               <td>{entry.ipAddress}</td>
-              <td>{entry.deviceName}</td>
-              <td>{entry.deviceType}</td>
+              <td>{entry.deviceName || '-'}</td>
+              <td>{entry.deviceType || '-'}</td>
               <td>
-                <button onClick={() => handleEdit(entry)}>Edit</button>
-                <button onClick={() => handleDelete(entry.id)}>Delete</button>
+                {entry.deviceName ? (
+                  <>
+                    <button onClick={() => handleEdit(entry)}>Edit</button>
+                    <button onClick={() => handleDelete(entry.id)}>Delete</button>
+                  </>
+                ) : (
+                  '-'
+                )}
               </td>
             </tr>
           ))}
