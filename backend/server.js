@@ -55,5 +55,5 @@ app.get('/users', (req, res) => {
   res.json(safeUsers);
 });
 
-app.listen(PORT, () => console.log(`Auth server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Auth server running on port ${PORT}`));
 // dummy comment
