@@ -32,7 +32,6 @@ export default function Dashboard() {
       const response = await axios.get(
         `${IP_API}/ips?username=${user.username}&email=${user.email}`
       );
-      console.log('Fetched IPs:', response.data);
       setData(response.data);
     } catch (error) {
       console.error('Error fetching IPs:', error);
@@ -44,7 +43,6 @@ export default function Dashboard() {
       const response = await axios.get(
         `${IP_API}/unused-ips?username=${user.username}&email=${user.email}`
       );
-      console.log('Fetched unused IPs:', response.data);
       setUnusedIPs(response.data);
     } catch (error) {
       console.error('Error fetching unused IPs:', error);
@@ -121,7 +119,7 @@ export default function Dashboard() {
       : filter === 'used'
       ? data.filter((d) => d.deviceName)
       : unusedIPs.map((ip) => ({
-          ipAddress: ip.ipAddress || ip, // works whether API returns string or object
+          ipAddress: ip.ipAddress || ip,
           deviceName: '',
           deviceType: '',
         }));
@@ -156,10 +154,7 @@ export default function Dashboard() {
           value={deviceName}
           onChange={(e) => setDeviceName(e.target.value)}
         />
-        <select
-          value={deviceType}
-          onChange={(e) => setDeviceType(e.target.value)}
-        >
+        <select value={deviceType} onChange={(e) => setDeviceType(e.target.value)}>
           <option value="">Select Device Type</option>
           <option value="Camera">Camera</option>
           <option value="Laptop">Laptop</option>
@@ -179,35 +174,37 @@ export default function Dashboard() {
         <button onClick={() => setFilter('unused')}>Unused</button>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>IP Address</th>
-            <th>Device Name</th>
-            <th>Device Type</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData.map((entry, index) => (
-            <tr key={index}>
-              <td>{entry.ipAddress}</td>
-              <td>{entry.deviceName || '-'}</td>
-              <td>{entry.deviceType || '-'}</td>
-              <td>
-                {entry.deviceName ? (
-                  <>
-                    <button onClick={() => handleEdit(entry)}>Edit</button>
-                    <button onClick={() => handleDelete(entry.id)}>Delete</button>
-                  </>
-                ) : (
-                  '-'
-                )}
-              </td>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>IP Address</th>
+              <th>Device Name</th>
+              <th>Device Type</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredData.map((entry, index) => (
+              <tr key={index}>
+                <td data-label="IP Address">{entry.ipAddress}</td>
+                <td data-label="Device Name">{entry.deviceName || '-'}</td>
+                <td data-label="Device Type">{entry.deviceType || '-'}</td>
+                <td data-label="Actions">
+                  {entry.deviceName ? (
+                    <>
+                      <button className="edit-btn" onClick={() => handleEdit(entry)}>Edit</button>
+                      <button className="delete-btn" onClick={() => handleDelete(entry.id)}>Delete</button>
+                    </>
+                  ) : (
+                    '-'
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
