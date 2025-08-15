@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Dashboard.css';
-
-const AUTH_API = process.env.REACT_APP_AUTH_API;
-const IP_API = process.env.REACT_APP_IP_API;
+import { IP_API } from './api';
 
 export default function Dashboard() {
   const [ipAddress, setIpAddress] = useState('');
@@ -31,7 +29,10 @@ export default function Dashboard() {
 
   const fetchIPs = async () => {
     try {
-      const response = await axios.get(`${IP_API}/ips?username=${user.username}&email=${user.email}`);
+      const response = await axios.get(
+        `${IP_API}/ips?username=${user.username}&email=${user.email}`
+      );
+      console.log('Fetched IPs:', response.data);
       setData(response.data);
     } catch (error) {
       console.error('Error fetching IPs:', error);
@@ -39,15 +40,16 @@ export default function Dashboard() {
   };
 
   const fetchUnusedIPs = async () => {
-  try {
-    const response = await axios.get(
-      `${IP_API}/unused-ips?username=${user.username}&email=${user.email}`
-    );
-    setUnusedIPs(response.data);
-  } catch (error) {
-    console.error('Error fetching unused IPs:', error);
-  }
-};
+    try {
+      const response = await axios.get(
+        `${IP_API}/unused-ips?username=${user.username}&email=${user.email}`
+      );
+      console.log('Fetched unused IPs:', response.data);
+      setUnusedIPs(response.data);
+    } catch (error) {
+      console.error('Error fetching unused IPs:', error);
+    }
+  };
 
   const validateIpAddress = (ip) => {
     const regex = /^172\.16\.(92|93|94|95)\.(1[0-9]|2[0-4][0-4]|[1-9][0-9]?)$/;
@@ -119,7 +121,7 @@ export default function Dashboard() {
       : filter === 'used'
       ? data.filter((d) => d.deviceName)
       : unusedIPs.map((ip) => ({
-          ipAddress: ip,
+          ipAddress: ip.ipAddress || ip, // works whether API returns string or object
           deviceName: '',
           deviceType: '',
         }));
