@@ -141,39 +141,52 @@ export default function Dashboard() {
 
       <h1 className="title">IP Management System</h1>
 
+      {/* ===== Form ===== */}
       <div className="form">
-        <input
-          type="text"
-          placeholder="IP Address (e.g., 172.16.92.1)"
-          value={ipAddress}
-          onChange={(e) => setIpAddress(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Device Name"
-          value={deviceName}
-          onChange={(e) => setDeviceName(e.target.value)}
-        />
-        <select value={deviceType} onChange={(e) => setDeviceType(e.target.value)}>
-          <option value="">Select Device Type</option>
-          <option value="Camera">Camera</option>
-          <option value="Laptop">Laptop</option>
-          <option value="PC">PC</option>
-          <option value="Server">Server</option>
-          <option value="Router/Modem">Router/Modem</option>
-          <option value="Switches">Switches</option>
-          <option value="PlayStation">PlayStation</option>
-        </select>
-        <button onClick={handleAddOrEdit}>{editingId ? 'Update' : 'Add'}</button>
-        <button onClick={resetForm}>Reset</button>
+        {/* Row 1: IP Address + Device Name */}
+        <div className="form-row">
+          <input
+            type="text"
+            placeholder="IP Address (e.g., 172.16.92.1)"
+            value={ipAddress}
+            onChange={(e) => setIpAddress(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Device Name"
+            value={deviceName}
+            onChange={(e) => setDeviceName(e.target.value)}
+          />
+        </div>
+
+        {/* Row 2: Device Type + Buttons */}
+        <div className="form-row">
+          <select value={deviceType} onChange={(e) => setDeviceType(e.target.value)}>
+            <option value="">Select Device Type</option>
+            <option value="Camera">Camera</option>
+            <option value="Laptop">Laptop</option>
+            <option value="PC">PC</option>
+            <option value="Server">Server</option>
+            <option value="Router/Modem">Router/Modem</option>
+            <option value="Switches">Switches</option>
+            <option value="PlayStation">PlayStation</option>
+          </select>
+
+          <div className="form-buttons">
+            <button onClick={handleAddOrEdit}>{editingId ? 'Update' : 'Add'}</button>
+            <button onClick={resetForm}>Reset</button>
+          </div>
+        </div>
       </div>
 
+      {/* Filters */}
       <div className="filter">
         <button onClick={() => setFilter('all')}>All</button>
         <button onClick={() => setFilter('used')}>Used</button>
         <button onClick={() => setFilter('unused')}>Unused</button>
       </div>
 
+      {/* Table */}
       <div className="table-container">
         <table>
           <thead>
