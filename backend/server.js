@@ -2,20 +2,24 @@ const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
+// Users file
 const filePath = './users.json';
 if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, JSON.stringify([]));
 
+// Helper: check temporary email
 const isTempEmail = email => {
   const tempDomains = ['tempmail.com', '10minutemail.com', 'mailinator.com'];
   return tempDomains.some(domain => email.endsWith(`@${domain}`));
 };
 
+// POST /register
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -33,9 +37,11 @@ app.post('/register', async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   users.push({ username, email, password: hashedPassword });
   fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
+
   res.json({ message: 'User registered successfully' });
 });
 
+// POST /login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const users = JSON.parse(fs.readFileSync(filePath));
@@ -48,12 +54,17 @@ app.post('/login', async (req, res) => {
   res.json({ message: 'Login successful', username: user.username, email: user.email });
 });
 
-// ✅ Add this route to view all registered users (for debug/admin)
+// GET /users (for admin/debug)
 app.get('/users', (req, res) => {
   const users = JSON.parse(fs.readFileSync(filePath));
   const safeUsers = users.map(({ username, email }) => ({ username, email }));
   res.json(safeUsers);
 });
 
+// ✅ GET /health (keep server awake)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date() });
+});
+
+// Start server
 app.listen(PORT, '0.0.0.0', () => console.log(`Auth server running on port ${PORT}`));
-// dummy comment

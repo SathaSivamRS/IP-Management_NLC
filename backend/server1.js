@@ -27,6 +27,12 @@ const generateAllIPs = () => {
   return ips;
 };
 
+// ✅ Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", timestamp: new Date() });
+});
+
+
 app.get("/ips", (req, res) => {
   const { username, email } = req.query;
   const data = JSON.parse(fs.readFileSync(FILE));
