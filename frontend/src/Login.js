@@ -12,15 +12,21 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleLogin = async () => {
-    const res = await loginUser(form);
-    console.log('Login response:', res);
+    try {
+      const res = await loginUser(form);
+      console.log('Login response:', res);
 
-    if (res.message === 'Login successful' && res.email && res.username) {
-      const userObj = { email: res.email, username: res.username };
-      localStorage.setItem('user', JSON.stringify(userObj));
-      navigate('/dashboard');
-    } else {
-      setMessage(res.message || 'Login failed');
+      // ✅ Check message instead of status
+      if (res.message === 'Login successful' && res.email && res.username) {
+        const userObj = { email: res.email, username: res.username };
+        localStorage.setItem('user', JSON.stringify(userObj));
+        navigate('/dashboard'); // Navigate to dashboard
+      } else {
+        setMessage(res.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setMessage('Login failed. Please try again.');
     }
   };
 

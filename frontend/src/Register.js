@@ -67,9 +67,19 @@ export default function Register() {
       return;
     }
 
-    const res = await registerUser({ username, email, password });
-    if (res.message === 'User registered successfully') navigate('/login');
-    else setMessage(res.message);
+    try {
+      const res = await registerUser({ username, email, password });
+      console.log('Register response:', res);
+
+      if (res.status === 'success') {
+        navigate('/login');
+      } else {
+        setMessage(res.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setMessage('Registration failed. Please try again.');
+    }
   };
 
   return (

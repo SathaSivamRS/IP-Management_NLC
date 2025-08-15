@@ -4,17 +4,17 @@ import Register from './Register';
 import Login from './Login';
 import Home from './Home';
 import ProtectedRoute from './ProtectedRoute';
-import Dashboard from './Dashboard'; // 👈 import
+import Dashboard from './Dashboard';
+import Splash from './Splash'; // 👈 add splash
 
 function App() {
   return (
     <Router>
-      
       <div className="container">
         <Routes>
-          <Route path="/" element={<Login />} /> {/* 👈 Default landing page */}
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Splash />} /> {/* 👈 Splash as landing page */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/dashboard"
             element={
@@ -30,4 +30,3 @@ function App() {
 }
 
 export default App;
-// Dummy line to get updatred

@@ -1,92 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Server Status Monitor</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 { margin-bottom: 30px; }
-    .server {
-      background: #222;
-      padding: 20px;
-      margin: 10px auto;
-      border-radius: 8px;
-      width: 320px;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    .loading {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid #fff;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    .active { color: #4caf50; font-weight: bold; }
-    .waking { color: #ff9800; }
-  </style>
-</head>
-<body>
-  <h1>Server Status Monitor</h1>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
 
-  <div id="server1" class="server">
-    <div class="loading"></div> Checking Server 1...
-  </div>
-  <div id="server2" class="server">
-    <div class="loading"></div> Checking Server 2...
-  </div>
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>IP-Management_NLC</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
 
-  <script>
-    const servers = [
-      { url: "https://ip-management-nlc.onrender.com/health", id: "server1", attempts: 0 },
-      { url: "https://ip-management-nlc-1.onrender.com/health", id: "server2", attempts: 0 }
-    ];
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
 
-    function checkServers() {
-      servers.forEach(server => {
-        server.attempts++;
-
-        fetch(server.url, { method: "GET" })
-          .then(res => {
-            if (res.ok) {
-              document.getElementById(server.id).innerHTML = `✅ Server Active: ${server.url}`;
-              document.getElementById(server.id).className = "server active";
-            } else {
-              showWaking(server);
-            }
-          })
-          .catch(() => {
-            showWaking(server);
-          });
-      });
-    }
-
-    function showWaking(server) {
-      const status = server.attempts < 20
-        ? `<div class="loading"></div> 🟡 Waking up... (Attempt ${server.attempts})`
-        : `<div class="loading"></div> ⏳ Still waking...`;
-      document.getElementById(server.id).innerHTML = status;
-      document.getElementById(server.id).className = "server waking";
-    }
-
-    // check every 3 seconds
-    setInterval(checkServers, 3000);
-    checkServers();
-  </script>
-</body>
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
 </html>
