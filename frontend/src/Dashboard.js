@@ -199,7 +199,7 @@ export default function Dashboard() {
           </thead>
           <tbody>
             {filteredData.map((entry, index) => (
-              <tr key={index}>
+              <tr key={index} className={entry.deviceName ? '' : 'unused-row'}>
                 <td data-label="IP Address">{entry.ipAddress}</td>
                 <td data-label="Device Name">{entry.deviceName || '-'}</td>
                 <td data-label="Device Type">{entry.deviceType || '-'}</td>
@@ -209,9 +209,7 @@ export default function Dashboard() {
                       <button className="edit-btn" onClick={() => handleEdit(entry)}>Edit</button>
                       <button className="delete-btn" onClick={() => handleDelete(entry.id)}>Delete</button>
                     </>
-                  ) : (
-                    '-'
-                  )}
+                  ) : '-'}
                 </td>
               </tr>
             ))}

@@ -37,7 +37,7 @@ body {
 
 .form-row {
   display: flex;
-  flex-direction: column; /* stacked on mobile */
+  flex-direction: column;
   gap: 0.5rem;
 }
 
@@ -53,15 +53,14 @@ body {
   box-sizing: border-box;
 }
 
-/* Buttons wrapper */
 .form-buttons {
   display: flex;
   gap: 1rem;
 }
 
 .form-buttons button {
+  flex: 1;
   margin-top: 0;
-  flex: 1; /* equal width for buttons */
 }
 
 button {
@@ -110,8 +109,6 @@ table {
   width: 100%;
   min-width: 600px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  position: relative;
 }
 
 th,
@@ -119,6 +116,7 @@ td {
   padding: 1rem;
   border: 1px solid #fff;
   text-align: center;
+  word-break: break-word; /* prevent overflow */
 }
 
 th {
@@ -135,7 +133,7 @@ tr:nth-child(even) td {
   background: rgba(255, 255, 255, 0.6);
 }
 
-/* Buttons inside table rows - Edit and Delete */
+/* Buttons inside table rows */
 table td button {
   padding: 0.5rem 1rem;
   border-radius: 10px;
@@ -145,7 +143,6 @@ table td button {
 
 button.edit-btn {
   background-color: #74b9ff;
-  transition: all 0.3s ease;
 }
 
 button.edit-btn:hover {
@@ -155,7 +152,6 @@ button.edit-btn:hover {
 
 button.delete-btn {
   background-color: #ff7675;
-  transition: all 0.3s ease;
 }
 
 button.delete-btn:hover {
@@ -163,7 +159,15 @@ button.delete-btn:hover {
   box-shadow: 0px 0px 15px rgba(231, 76, 60, 0.8);
 }
 
-/* Subtle Background Shapes */
+/* ===== UNUSED ROW STYLE ===== */
+tr.unused-row td {
+  background: linear-gradient(135deg, #ffeaa7, #81ecec);
+  color: #2d3436;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #fff;
+}
+
+/* Subtle background shapes */
 body::before,
 body::after,
 .app::before,
@@ -233,69 +237,33 @@ body::after {
 }
 
 .greeting {
-  color: #333;
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Animation for Floating Effect */
+/* Floating animation */
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-15px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
 }
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media screen and (max-width: 768px) {
-  .form {
-    flex-direction: column;
-    max-width: 90%;
-  }
-
-  .form-row {
-    flex-direction: column;
-  }
-
-  .form input,
-  .form select,
-  .form button {
-    width: 100%;
-  }
-
-  .form-buttons {
-    flex-direction: row; /* buttons on same line */
-    gap: 0.5rem;
-  }
-
-  table {
-    min-width: 500px;
-  }
-
-  th,
-  td {
-    padding: 0.7rem;
-    font-size: 0.9rem;
-  }
-
-  .filter button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
+  .form-row { flex-direction: column; }
+  .form-buttons { flex-direction: row; gap: 0.5rem; }
+  table { min-width: 500px; }
+  th, td { padding: 0.7rem; font-size: 0.9rem; }
+  .filter button { padding: 0.5rem 1rem; font-size: 0.9rem; }
+  .greeting { font-size: 1rem; max-width: 60%; }
 }
 
-/* ===== DESKTOP FORM LAYOUT ===== */
+/* ===== DESKTOP ===== */
 @media screen and (min-width: 769px) {
-  .form-row {
-    flex-direction: row;
-  }
-
+  .form-row { flex-direction: row; gap: 1rem; }
   .form-row input,
-  .form-row select {
-    flex: 1;
-  }
-
-  .form-buttons button {
-    flex: 1;
-  }
+  .form-row select { flex: 1; }
+  .form-buttons button { flex: 1; }
 }
