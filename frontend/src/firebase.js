@@ -20,4 +20,4 @@ export const db = getFirestore(app);
 
 // console.log("API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
 // console.log("Auth Domain:", process.env.REACT_APP_FIREBASE_AUTH_DOMAIN);
-
+// uhe8wuh
