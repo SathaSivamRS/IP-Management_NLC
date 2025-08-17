@@ -1,57 +1,87 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import './Dashboard.css';
-import { IP_API } from './api';
+import { auth, db } from './firebase';
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function Dashboard() {
+  const [user, setUser] = useState(null);
   const [ipAddress, setIpAddress] = useState('');
   const [deviceName, setDeviceName] = useState('');
   const [deviceType, setDeviceType] = useState('');
-  const [data, setData] = useState([]);
+  const [usedIPs, setUsedIPs] = useState([]);
   const [filter, setFilter] = useState('all');
   const [editingId, setEditingId] = useState(null);
-  const [unusedIPs, setUnusedIPs] = useState([]);
 
-  const storedUser = localStorage.getItem('user');
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  const ipCollection = collection(db, 'ips');
 
   useEffect(() => {
-    if (!user?.username || !user?.email) {
-      alert('Invalid session. Please log in again.');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-      return;
-    }
-
-    fetchIPs();
-    fetchUnusedIPs();
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const loggedUser = {
+          uid: currentUser.uid,
+          email: currentUser.email,
+          username: currentUser.displayName || currentUser.email,
+        };
+        setUser(loggedUser);
+        await fetchUsedIPs(loggedUser.uid);
+      } else {
+        window.location.href = '/login';
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  const fetchIPs = async () => {
+  const fetchUsedIPs = async (uid) => {
     try {
-      const response = await axios.get(
-        `${IP_API}/ips?username=${user.username}&email=${user.email}`
-      );
-      setData(response.data);
-    } catch (error) {
-      console.error('Error fetching IPs:', error);
+      const q = query(ipCollection, where('uid', '==', uid));
+      const snapshot = await getDocs(q);
+      const ips = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setUsedIPs(ips);
+    } catch (err) {
+      console.error('Error fetching used IPs:', err);
     }
   };
 
-  const fetchUnusedIPs = async () => {
-    try {
-      const response = await axios.get(
-        `${IP_API}/unused-ips?username=${user.username}&email=${user.email}`
-      );
-      setUnusedIPs(response.data);
-    } catch (error) {
-      console.error('Error fetching unused IPs:', error);
+  const getUnusedIPs = () => {
+    const usedIPAddresses = new Set(usedIPs.map((ip) => ip.ipAddress));
+    const unused = [];
+
+    for (let subnet = 92; subnet <= 95; subnet++) {
+      for (let host = 1; host <= 254; host++) {
+        const ip = `172.16.${subnet}.${host}`;
+        if (!usedIPAddresses.has(ip)) {
+          unused.push({
+            id: ip, // temporary id for frontend
+            ipAddress: ip,
+            deviceName: '',
+            deviceType: '',
+          });
+        }
+      }
     }
+    return unused;
   };
 
   const validateIpAddress = (ip) => {
-    const regex = /^172\.16\.(92|93|94|95)\.(1[0-9]|2[0-4][0-4]|[1-9][0-9]?)$/;
+    const regex = /^172\.16\.(92|93|94|95)\.(1[0-9]|2[0-4][0-9]|[1-9][0-9]?)$/;
     return regex.test(ip);
+  };
+
+  const resetForm = () => {
+    setIpAddress('');
+    setDeviceName('');
+    setDeviceType('');
+    setEditingId(null);
   };
 
   const handleAddOrEdit = async () => {
@@ -59,7 +89,6 @@ export default function Dashboard() {
       alert('All fields are required!');
       return;
     }
-
     if (!validateIpAddress(ipAddress)) {
       alert('Invalid IP Address! Use range 172.16.92.x to 172.16.95.x.');
       return;
@@ -69,21 +98,26 @@ export default function Dashboard() {
       ipAddress,
       deviceName,
       deviceType,
-      username: user.username,
-      email: user.email,
+      uid: user.uid,
+      createdAt: new Date(),
     };
 
     try {
       if (editingId) {
-        await axios.put(`${IP_API}/ips/${editingId}`, newEntry);
+        const docRef = doc(db, 'ips', editingId);
+        await updateDoc(docRef, newEntry);
       } else {
-        await axios.post(`${IP_API}/ips`, newEntry);
+        // Prevent duplicate IPs
+        if (usedIPs.some((ip) => ip.ipAddress === ipAddress)) {
+          alert('This IP already exists. Please edit it instead.');
+          return;
+        }
+        await addDoc(ipCollection, newEntry);
       }
-      fetchIPs();
-      fetchUnusedIPs();
+      await fetchUsedIPs(user.uid);
       resetForm();
-    } catch (error) {
-      alert('Error: ' + (error.response?.data?.message || 'Validation failed'));
+    } catch (err) {
+      alert('Error saving IP data: ' + err.message);
     }
   };
 
@@ -95,45 +129,33 @@ export default function Dashboard() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this IP?')) {
-      try {
-        await axios.delete(`${IP_API}/ips/${id}`);
-        fetchIPs();
-        fetchUnusedIPs();
-      } catch (error) {
-        alert('Error deleting IP.');
-      }
+    if (!window.confirm('Are you sure you want to delete this IP?')) return;
+    try {
+      await deleteDoc(doc(db, 'ips', id));
+      await fetchUsedIPs(user.uid);
+    } catch (err) {
+      alert('Error deleting IP: ' + err.message);
     }
   };
 
-  const resetForm = () => {
-    setIpAddress('');
-    setDeviceName('');
-    setDeviceType('');
-    setEditingId(null);
-  };
+  if (!user) return <div>Loading...</div>;
 
+  // Combine used and unused IPs for display
+  const unusedIPs = getUnusedIPs();
   const filteredData =
     filter === 'all'
-      ? data
+      ? [...usedIPs, ...unusedIPs]
       : filter === 'used'
-      ? data.filter((d) => d.deviceName)
-      : unusedIPs.map((ip) => ({
-          ipAddress: ip.ipAddress || ip,
-          deviceName: '',
-          deviceType: '',
-        }));
+      ? usedIPs
+      : unusedIPs;
 
   return (
     <div className="app">
       <header className="navbar">
-        <div className="greeting">Hello, {user?.username.replace(/_/g, ' ')} 👋</div>
+        <div className="greeting">Hello, {user.username.replace(/_/g, ' ')} 👋</div>
         <button
           className="logout-btn"
-          onClick={() => {
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-          }}
+          onClick={() => signOut(auth).then(() => (window.location.href = '/login'))}
         >
           Logout
         </button>
@@ -141,9 +163,7 @@ export default function Dashboard() {
 
       <h1 className="title">IP Management System</h1>
 
-      {/* ===== Form ===== */}
       <div className="form">
-        {/* Row 1: IP Address + Device Name */}
         <div className="form-row">
           <input
             type="text"
@@ -159,7 +179,6 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Row 2: Device Type + Buttons */}
         <div className="form-row">
           <select value={deviceType} onChange={(e) => setDeviceType(e.target.value)}>
             <option value="">Select Device Type</option>
@@ -171,7 +190,6 @@ export default function Dashboard() {
             <option value="Switches">Switches</option>
             <option value="PlayStation">PlayStation</option>
           </select>
-
           <div className="form-buttons">
             <button onClick={handleAddOrEdit}>{editingId ? 'Update' : 'Add'}</button>
             <button onClick={resetForm}>Reset</button>
@@ -179,14 +197,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="filter">
         <button onClick={() => setFilter('all')}>All</button>
         <button onClick={() => setFilter('used')}>Used</button>
         <button onClick={() => setFilter('unused')}>Unused</button>
       </div>
 
-      {/* Table */}
       <div className="table-container">
         <table>
           <thead>
@@ -198,18 +214,24 @@ export default function Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((entry, index) => (
-              <tr key={index} className={entry.deviceName ? '' : 'unused-row'}>
+            {filteredData.map((entry) => (
+              <tr key={entry.id}>
                 <td data-label="IP Address">{entry.ipAddress}</td>
                 <td data-label="Device Name">{entry.deviceName || '-'}</td>
                 <td data-label="Device Type">{entry.deviceType || '-'}</td>
                 <td data-label="Actions">
                   {entry.deviceName ? (
                     <>
-                      <button className="edit-btn" onClick={() => handleEdit(entry)}>Edit</button>
-                      <button className="delete-btn" onClick={() => handleDelete(entry.id)}>Delete</button>
+                      <button className="edit-btn" onClick={() => handleEdit(entry)}>
+                        Edit
+                      </button>
+                      <button className="delete-btn" onClick={() => handleDelete(entry.id)}>
+                        Delete
+                      </button>
                     </>
-                  ) : '-'}
+                  ) : (
+                    <span style={{ color: '#888' }}>Unused</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -219,4 +241,3 @@ export default function Dashboard() {
     </div>
   );
 }
-// sada

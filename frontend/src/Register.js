@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { registerUser } from './api';
 import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth, db } from './firebase'; // make sure db is Firestore instance
+import { doc, setDoc } from 'firebase/firestore';
 import './index.css';
 
 export default function Register() {
@@ -68,17 +70,28 @@ export default function Register() {
     }
 
     try {
-      const res = await registerUser({ username, email, password });
-      console.log('Register response:', res);
+      // Create user with Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
 
-      if (res.status === 'success') {
-        navigate('/login');
-      } else {
-        setMessage(res.message || 'Registration failed');
-      }
+      // Update user profile
+      await updateProfile(firebaseUser, { displayName: fullName });
+
+      // Save user details in Firestore
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        fullName,
+        username,
+        email,
+        uid: firebaseUser.uid,
+        createdAt: new Date()
+      });
+
+      console.log('User created and saved in Firestore:', firebaseUser.uid);
+      setMessage('✅ Registration successful!');
+      navigate('/login');
     } catch (error) {
-      console.error('Registration error:', error);
-      setMessage('Registration failed. Please try again.');
+      console.error('Firebase registration error:', error);
+      setMessage(`❌ ${error.code}: ${error.message}`);
     }
   };
 
@@ -122,9 +135,7 @@ export default function Register() {
           onChange={handleChange}
           style={styles.input}
         />
-        {passwordStrength && (
-          <p style={styles.strength}>Password Strength: {passwordStrength}</p>
-        )}
+        {passwordStrength && <p style={styles.strength}>Password Strength: {passwordStrength}</p>}
 
         <input
           type="password"
@@ -150,57 +161,12 @@ export default function Register() {
 }
 
 const styles = {
-  wrapper: {
-    minHeight: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: 'linear-gradient(to right, #fbc2eb, #a6c1ee)'
-  },
-  card: {
-    background: 'rgba(255, 255, 255, 0.85)',
-    padding: '2rem',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-    width: '90%',
-    maxWidth: '450px',
-    textAlign: 'center'
-  },
-  title: {
-    marginBottom: '0.5rem',
-    color: '#333'
-  },
-  input: {
-    padding: '0.8rem',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
-    fontSize: '1rem'
-  },
-  button: {
-    padding: '0.8rem',
-    backgroundColor: '#ff6b6b',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    fontWeight: 'bold'
-  },
-  link: {
-    marginTop: '0.5rem',
-    fontSize: '0.9rem',
-    color: '#444',
-    textDecoration: 'none'
-  },
-  message: {
-    color: 'red',
-    fontSize: '0.9rem'
-  },
-  strength: {
-    fontSize: '0.9rem',
-    color: '#444'
-  }
+  wrapper: { minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(to right, #fbc2eb, #a6c1ee)' },
+  card: { background: 'rgba(255, 255, 255, 0.85)', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '1rem', width: '90%', maxWidth: '450px', textAlign: 'center' },
+  title: { marginBottom: '0.5rem', color: '#333' },
+  input: { padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem' },
+  button: { padding: '0.8rem', backgroundColor: '#ff6b6b', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1rem', cursor: 'pointer', fontWeight: 'bold' },
+  link: { marginTop: '0.5rem', fontSize: '0.9rem', color: '#444', textDecoration: 'none' },
+  message: { color: 'red', fontSize: '0.9rem' },
+  strength: { fontSize: '0.9rem', color: '#444' }
 };
