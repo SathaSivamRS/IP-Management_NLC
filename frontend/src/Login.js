@@ -25,7 +25,7 @@ export default function Login() {
         form.password
       );
       const user = userCredential.user;
-      console.log("Firebase user:", user);
+      // console.log("Firebase user:", user);
 
       // Save minimal user info to localStorage
       const userObj = { email: user.email, uid: user.uid };
